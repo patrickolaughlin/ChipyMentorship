@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from brewpubs.permissions import IsOwnerOrReadOnly
+from brewpubs.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+
 from . import models
 from . import serializers
 
@@ -17,59 +18,25 @@ User = get_user_model()
 class ListCreateBrewpub(generics.ListCreateAPIView):
     queryset = models.Brewpub.objects.all()
     serializer_class = serializers.BrewpubSerializer
-
-    def perform_create(self, serializer):
-        if self.request.user.is_staff:
-            if serializer.is_valid():
-                serializer.save()
-        else:
-            raise PermissionDenied()
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class RetrieveUpdateDestroyBrewpub(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Brewpub.objects.all()
     serializer_class = serializers.BrewpubSerializer
-
-    def perform_update(self, serializer):
-        if self.request.user.is_staff:
-            serializer.save(user=self.request.user)
-        else:
-            raise PermissionDenied()
-
-    def perform_destroy(self, serializer):
-        if self.request.user.is_staff:
-            serializer.save(user=self.request.user)
-        else:
-            raise PermissionDenied()
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class ListCreateBeer(generics.ListCreateAPIView):
     queryset = models.Beer.objects.all()
     serializer_class = serializers.BeerSerializer
-
-    def perform_create(self, serializer):
-        if self.request.user.is_staff:
-            if serializer.is_valid():
-                serializer.save()
-        else:
-            raise PermissionDenied()
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class RetrieveUpdateDestroyBeer(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Beer.objects.all()
     serializer_class = serializers.BeerSerializer
-
-    def perform_update(self, serializer):
-        if self.request.user.is_staff:
-            serializer.save(user=self.request.user)
-        else:
-            raise PermissionDenied()
-
-    def perform_destroy(self, serializer):
-        if self.request.user.is_staff:
-            serializer.save(user=self.request.user)
-        else:
-            raise PermissionDenied()
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 # =========================================================
@@ -98,7 +65,7 @@ class ListCreateBrewpubReview(generics.ListCreateAPIView):
 class RetrieveUpdateDestroyBrewpubReview(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Review.objects.all()
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = (IsOwnerOrReadOnly,)
 
     def get_object(self):
         return get_object_or_404(
