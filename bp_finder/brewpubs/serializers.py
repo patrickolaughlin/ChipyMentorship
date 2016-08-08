@@ -7,18 +7,22 @@ from . import models
 User = get_user_model()
 
 
-"""
-class UserSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = User
-        fields = ('id',
-                  'username',
-                  'email')
-"""
+        model = models.Review
+        fields = (
+            'id',
+            'user',
+            'comment',
+            'rating',
+            'created_at'
+        )
 
 
 class BrewpubSerializer(serializers.ModelSerializer):
     brewpub_beers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.Brewpub
@@ -28,7 +32,8 @@ class BrewpubSerializer(serializers.ModelSerializer):
                   'telephone',
                   'website',
                   'hours',
-                  'brewpub_beers')
+                  'brewpub_beers',
+                  'reviews')
         extra_kwargs = {
             'is_admin': {'write_only': True}
         }
@@ -36,6 +41,7 @@ class BrewpubSerializer(serializers.ModelSerializer):
 
 class BeerSerializer(serializers.ModelSerializer):
     brewpub = BrewpubSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.Beer
@@ -43,27 +49,8 @@ class BeerSerializer(serializers.ModelSerializer):
                   'name',
                   'beer_type',
                   'description',
-                  'brewpub',)
+                  'brewpub',
+                  'reviews',)
         extra_kwargs = {
             'is_admin': {'write_only': True}
         }
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    brewpub = BrewpubSerializer(many=True, read_only=True)
-    beer = BeerSerializer(many=True, read_only=True)
-    #  User = get_user_model()
-
-    class Meta:
-        model = models.Review
-        fields = (
-            'id',
-            'brewpub',
-            'beer',
-            'username',
-            'email',
-            'comment',
-            'rating',
-            'created_at'
-        )
-        lookup_field = 'id'

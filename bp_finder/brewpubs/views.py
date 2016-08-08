@@ -47,8 +47,6 @@ class ListCreateBeer(generics.ListCreateAPIView):
     queryset = models.Beer.objects.all()
     serializer_class = serializers.BeerSerializer
 
-    #  User = get_user_model()
-
     def perform_create(self, serializer):
         if self.request.user.is_staff:
             if serializer.is_valid():
@@ -82,15 +80,17 @@ class ListCreateBrewpubReview(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
-        return self.queryset.filter(brewpub=self.kwargs.get('brewpub_pk'))
+        return self.queryset.filter(brewpub_reviews=self.kwargs.get('brewpub_pk'))
 
     def perform_create(self, serializer):
-        #  Should we only allow one review for ea brewpub or ea beer per user?
-        brewpub_pk = self.kwargs.get('brewpub_pk')
+        brewpub = get_object_or_404(
+            models.Brewpub, pk=self.kwargs.get('brewpub_pk'))
         #  need to check that submitted user is actual user
-        if self.request.user == serializer.validated_data['username']:
+        if self.request.user == serializer.validated_data['user']:
             if serializer.is_valid():
-                serializer.save(brewpub=brewpub_pk)
+                serializer.save()
+                new_review = get_object_or_404(models.Review, pk=serializer.data['id'])
+                brewpub.review.add(new_review)
         else:
             raise PermissionDenied()
 
@@ -120,7 +120,7 @@ class ListBeerReview(generics.ListAPIView):
     serializer_class = serializers.ReviewSerializer
 
     def get_queryset(self):
-        return self.queryset.filter(beer=self.kwargs.get('beer_pk'))
+        return self.queryset.filter(beer_reviews=self.kwargs.get('beer_pk'))
 
 
 class ListCreateBeerReview(generics.ListCreateAPIView):
@@ -129,13 +129,16 @@ class ListCreateBeerReview(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
-        return self.queryset.filter(beer=self.kwargs.get('beer_pk'))
+        return self.queryset.filter(beer_reviews=self.kwargs.get('beer_pk'))
 
     def perform_create(self, serializer):
-        beer_pk = self.kwargs.get('beer_pk')
-        if self.request.user == serializer.validated_data['username']:
+        beer = get_object_or_404(
+            models.Beer, pk=self.kwargs.get('beer_pk'))
+        if self.request.user == serializer.validated_data['user']:
             if serializer.is_valid():
-                serializer.save(beer=beer_pk)
+                serializer.save()
+                new_review = get_object_or_404(models.Review, pk=serializer.data['id'])
+                beer.review.add(new_review)
         else:
             raise PermissionDenied()
 
@@ -147,7 +150,7 @@ class ListUsersReviews(generics.ListAPIView):
     permission_classes = (IsOwnerOrReadOnly, )
 
     def get_queryset(self):
-        return self.queryset.filter(username_id=self.request.user.id)
+        return self.queryset.filter(user_id=self.request.user.id)
 
 
 class RetrieveUpdateDestroyReview(generics.RetrieveUpdateDestroyAPIView):

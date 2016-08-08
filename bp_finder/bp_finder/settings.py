@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'bp_finder.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Chgo_brewpub_db',
+        'NAME': 'Chgo_brewpubs_db',
         'USER': 'Patrick',
         'PASSWORD': 'Panther69',
         'HOST': '127.0.0.1',
